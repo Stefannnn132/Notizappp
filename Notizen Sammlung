@@ -1,0 +1,121 @@
+# NotizApp — Notizen erstellen & teilen
+
+Eine einfache Web-App zum Erstellen und Teilen von Notizen über einen Link.
+
+## Architektur
+
+- **Frontend:** Statische HTML/CSS/JS-Website (GitHub Pages)
+- **Backend:** Google Apps Script Web App → Google Sheets als Datenbank
+- **Keine Anmeldung nötig** — Notizen werden über einen Link geteilt
+
+## Features
+
+- Notizen erstellen und sofort Lese- und Bearbeitungslink erhalten
+- Notizen über Links teilen (read-only für Empfänger)
+- Notizen über Bearbeitungslink bearbeiten und löschen
+- Suchfunktion (nur im Demo-Modus)
+- Dark / Light Mode
+- Vollständig responsiv (Mobile + Desktop)
+- Demo-Modus ohne Backend (für Vorschau)
+
+## Schnellstart
+
+### 1. Frontend (GitHub Pages)
+
+1. Ein neues GitHub Repository erstellen (z. B. `notizapp`)
+2. Alle Dateien aus diesem Ordner in das Repository hochladen
+   - `index.html`, `base.css`, `styles.css`, `app.js`
+   - `config.example.js`
+   - `Code.gs` (wird für GitHub nicht benötigt, aber als Backup)
+   - `.gitignore`
+3. Unter **Settings → Pages** die Source auf `main` / `root` setzen
+4. Die Seite ist unter `https://<username>.github.io/notizapp/` erreichbar
+
+### 2. Backend (Google Sheets + Apps Script)
+
+1. Ein neues [Google Sheet](https://sheets.new) erstellen
+2. Im Menü **Extensions → Apps Script** öffnen
+3. Den gesamten Code aus `Code.gs` in den Script Editor kopieren (bestehenden Code ersetzen)
+4. Das Projekt speichern
+5. Auf **Deploy → New deployment** klicken
+6. **Web app** auswählen:
+   - Description: `NotizApp API`
+   - Execute as: **Me** (dein Google-Account)
+   - Who has access: **Anyone with the link**
+7. Auf **Deploy** klicken und die **Web App URL** kopieren
+8. Die URL bei der ersten Ausführung autorisieren
+
+### 3. Konfiguration
+
+1. Die Datei `config.example.js` zu `config.js` kopieren
+2. Die Web App URL eintragen:
+   ```javascript
+   const CONFIG = {
+     API_URL: "https://script.google.com/macros/s/DEINE_ID/exec",
+   };
+   ```
+3. `config.js` wird von `.gitignore` ausgeschlossen und NICHT auf GitHub hochgeladen
+4. `config.js` manuell in das GitHub Pages Repository laden ODER die URL direkt in `app.js` eintragen
+
+### 4. Fertig
+
+Die App läuft jetzt. Beim ersten Aufruf ohne `config.js` startet der Demo-Modus mit Beispielnotten.
+
+## Datei-Struktur
+
+```
+notizapp/
+├── index.html          # Hauptseite
+├── base.css            # Basis-Styles (Reset, Tokens)
+├── styles.css          # Design-System & Komponenten
+├── app.js              # Frontend-Logik (Router, API, Rendering)
+├── config.example.js   # Vorlage für API-Konfiguration
+├── config.js           # Deine API URL (NICHT auf GitHub laden!)
+├── Code.gs             # Google Apps Script Backend
+├── .gitignore          # Ignoriert config.js
+└── README.md           # Diese Datei
+```
+
+## API-Endpunkte
+
+Das Backend (`Code.gs`) stellt folgende Aktionen über POST bereit:
+
+| Action  | Parameter              | Beschreibung                    |
+|---------|------------------------|---------------------------------|
+| `list`  | —                      | Alle Notizen (ohne Tokens)       |
+| `create`| `title`, `content`     | Neue Notiz erstellen             |
+| `get`   | `id`, `token`          | Notiz abrufen (share oder edit)  |
+| `update`| `id`, `editToken`, `title`, `content` | Notiz bearbeiten   |
+| `delete`| `id`, `editToken`      | Notiz löschen                    |
+
+## Google Sheet Struktur
+
+Das Sheet `Notes` wird automatisch mit folgenden Spalten erstellt:
+
+| id   | shareToken | editToken | title | content | createdAt | updatedAt |
+|------|------------|-----------|-------|---------|-----------|-----------|
+| abc123 | f3a8... | b7c2... | Titel | Text... | 2026-01-01T... | 2026-01-02T... |
+
+## Sicherheitshinweise
+
+- Die Google Sheet ist **nicht öffentlich** — nur die Apps Script Web App hat Zugriff
+- **Zwei Token pro Notiz:**
+  - `shareToken`: im Lese-Link enthalten, erlaubt nur Lesen (`get`)
+  - `editToken`: im Bearbeitungs-Link enthalten, nötig für `update` und `delete`
+- **Keine globale Liste im Produktionsmodus:** Notizen werden nicht öffentlich gelistet — sie sind nur über Lese- oder Bearbeitungslinks erreichbar
+- Beim Erstellen einer Notiz erhältst du zwei Links: einen zum Lesen (teilen) und einen zum Bearbeiten
+- Die Apps Script URL ist im Frontend sichtbar (statische Seite) — Sicherheit läuft über Tokens, nicht über Geheimhaltung der URL
+- `config.js` wird nicht in das GitHub Repository hochgeladen. Bei GitHub Pages muss die URL entweder direkt in `app.js` eingetragen werden oder `config.js` muss bewusst mitdeployt werden
+- Für vollständig private Notizen: das Frontend nicht öffentlich hosten
+
+## Technologie
+
+- **Frontend:** Vanilla HTML/CSS/JS (keine Frameworks)
+- **Fonts:** Cabinet Grotesk + Satoshi (Fontshare)
+- **Backend:** Google Apps Script (JavaScript)
+- **Datenbank:** Google Sheets
+- **Hosting:** GitHub Pages (kostenlos)
+
+## Lizenz
+
+Frei verwendbar.
